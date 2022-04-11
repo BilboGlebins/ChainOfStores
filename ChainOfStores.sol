@@ -32,10 +32,6 @@ contract ChainOfStores{
 
     address[] reg;
 
-    function encoderTest(string memory _text) private pure returns(bytes32){
-        return keccak256(abi.encodePacked(_text));
-    }
-
     function pushNewUser (uint _Role, string memory _LastName, string memory _FirstName, string memory _MiddleName, string memory _Password, uint _Balance) public{
         require(users[msg.sender].isExist == false, "Users already exist");
         users[msg.sender] = User(
@@ -43,7 +39,7 @@ contract ChainOfStores{
             _LastName,
             _FirstName,
             _MiddleName,
-            encoderTest(_Password),
+            keccak256(abi.encodePacked(_Password)),
             _Balance,
             true 
         );
@@ -52,7 +48,7 @@ contract ChainOfStores{
 
     function autUser(string memory _Password) public view returns (bool){
         require(users[msg.sender].isExist == true, "User not exist");
-        if (users[msg.sender].Password == encoderTest(_Password))
+        if (users[msg.sender].Password == keccak256(abi.encodePacked(_Password)))
         return true;
 
         return false;
