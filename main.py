@@ -34,9 +34,7 @@ while buff_ans == 1:
 
     print("Хотите довавить еще одного пользователя?")
     print("Да - 1 / Нет - 0")
-
     buff_ans=int(input())
-
     if buff_ans == 0:
         break
 
@@ -52,7 +50,7 @@ while buff_choice == 1:
 
         address_admin = input("Введите адрес администратора: ")
         address_password = input("Введите пароль администратора: ")
-        print("Статус авторизации", contract.functions.autUser(address_password).call({'from': address_admin}))
+        print("Статус авторизации: ", contract.functions.autUser(address_password).call({'from': address_admin}))
         print()
 
         buff_function = 1
@@ -67,36 +65,38 @@ while buff_choice == 1:
             if choice_function == 1:
                 print("Повышение покупателя до роли продавца")
                 address_customer=input("Ввидите адрес покупателя: ")
-                contract.functions.upBeforeCustomer(address_customer).call({'from': address_admin})
-                break
+                contract.functions.upBeforeSeller(address_customer).call({'from': address_admin})
+                print("Роль изменена!")
+                print()
             if choice_function == 2:
                 print("Понижение продавца до роли покупателя")
                 address_saller=input("Ввидите адрес продавца: ")
-                contract.functions.lowerBeforeSeller(address_saller).call({'from': address_admin})
-                break
+                contract.functions.lowerToCustomer(address_saller).call({'from': address_admin})
+                print("Роль изменена!")
+                print()
             if choice_function == 3:
                 print("Добавление нового администратора")
-                address = input("Введите адрес: ")
+                address = input("Введите адрес нового администратора: ")
                 role = 1
                 lastname = input("Введите фамилию: ")
                 firstname = input("Введите имя: ")
                 middlename = input("Введите отчество: ")
                 password = input("Введите пароль: ")
                 balance = int(input("Введите баланс: "))
-                contract.functions.pushNewUser(role, lastname, firstname, middlename, password, balance).transact({'from': address_admin})
-                break
-
+                contract.functions.pushNewUser(role, lastname, firstname, middlename, password, balance).transact({'from': address})
+                print("Пользователь добавлен")
+                print()
             print("Хотите выбрать другую функцию?")
             print("Да - 1 / Нет - 0")
             buff_function = int(input())
+            print()
             if buff_function == 0:
                 break
 
     #if choice_role == 2:
-
-
     #
     #if choice_role == 3:
+    #
 
 
 

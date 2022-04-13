@@ -1,4 +1,4 @@
-contract_address = '0x782b1451F05642b127e62B643dfc88a86B082aB9'
+contract_address = '0x25675B284c3c751D8526d5cE0513634fd6486405'
 
 abi = [
 	{
@@ -35,7 +35,7 @@ abi = [
 				"type": "address"
 			}
 		],
-		"name": "lowerBeforeSeller",
+		"name": "lowerToCustomer",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -93,7 +93,7 @@ abi = [
 				"type": "address"
 			}
 		],
-		"name": "upBeforeCustomer",
+		"name": "upBeforeSeller",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
