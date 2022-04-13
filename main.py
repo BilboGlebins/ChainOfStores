@@ -64,14 +64,14 @@ while buff_choice == 1:
 
             if choice_function == 1:
                 print("Повышение покупателя до роли продавца")
-                address_customer=input("Ввидите адрес покупателя: ")
-                contract.functions.upBeforeSeller(address_customer).call({'from': address_admin})
+                buff_address_customer=input("Ввидите адрес покупателя: ")
+                contract.functions.upBeforeSeller(buff_address_customer).call({'from': address_admin})
                 print("Роль изменена!")
                 print()
             if choice_function == 2:
                 print("Понижение продавца до роли покупателя")
-                address_saller=input("Ввидите адрес продавца: ")
-                contract.functions.lowerToCustomer(address_saller).call({'from': address_admin})
+                buff_address_saller=input("Ввидите адрес продавца: ")
+                contract.functions.lowerToCustomer(buff_address_saller).call({'from': address_admin})
                 print("Роль изменена!")
                 print()
             if choice_function == 3:
@@ -93,10 +93,18 @@ while buff_choice == 1:
             if buff_function == 0:
                 break
 
-    #if choice_role == 2:
-    #
-    #if choice_role == 3:
-    #
+    if choice_role == 2:
+        address_saller = input("Введите адрес продавца: ")
+        address_password = input("Введите пароль продавца: ")
+        print("Статус авторизации: ", contract.functions.autUser(address_password).call({'from': address_saller}))
+        print()
+
+    if choice_role == 3:
+        address_customer = input("Введите адрес покупателя: ")
+        address_password = input("Введите пароль покупателя: ")
+        print("Статус авторизации: ", contract.functions.autUser(address_password).call({'from': address_customer}))
+        print()
+
 
 
 
