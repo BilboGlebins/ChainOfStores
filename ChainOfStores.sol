@@ -60,7 +60,7 @@ contract ChainOfStores{
         users[adr].Role = 2;
     } 
 
-    function lowerBeforeCustomer(address adr) public{
+    function lowerToCustomer(address adr) public{
         require(users[msg.sender].Role == 1, "You are admin");
         require(users[adr].Role == 2, "You not seller");
         users[adr].Role = 3;
