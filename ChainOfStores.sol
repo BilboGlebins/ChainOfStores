@@ -71,7 +71,7 @@ contract ChainOfStores{
 
     mapping (address => uint) private requestrole;
 
-    function requestLowerBeforeSeller() public{
+    function requestAdministrator() public{
         require(users[msg.sender].Role != 1, "You are not admin");
         if (users[msg.sender].Role == 2){
             requestrole[msg.sender] = 2;
