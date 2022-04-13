@@ -54,13 +54,13 @@ contract ChainOfStores{
         return false;
     }
 
-    function upBeforeCustomer(address adr) public{
+    function upBeforeSeller(address adr) public{
         require(users[msg.sender].Role == 1, "You are admin");
         require(users[adr].Role == 3, "You not customer");
         users[adr].Role = 2;
     } 
 
-    function lowerBeforeSeller(address adr) public{
+    function lowerBeforeCustomer(address adr) public{
         require(users[msg.sender].Role == 1, "You are admin");
         require(users[adr].Role == 2, "You not seller");
         users[adr].Role = 3;
