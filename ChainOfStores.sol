@@ -5,131 +5,156 @@ pragma experimental ABIEncoderV2;
 
 contract ChainOfStores{
 
+    struct Shop{
+        uint IndexShop; // Index starts from 0
+        string NameShop;
+    }
+
+    struct Product{
+        uint IndexProduct; // Index starts from 0
+        string NameProduct;
+        uint PriceProduct;
+        uint IndexShop;
+    }
+
     struct User{
-        uint Role;
-        string LastName;
-        string FirstName;
-        string MiddleName;
+        uint Role; // 0 - Administrator / 1 - Seller / 2 - Customer
+        string Login;
         bytes32 Password;
         uint Balance;
         bool isExist;
     }
 
-    struct Product{
-        uint IdProduct;
-        uint Price;
-    }
-
-    struct Shop{
-        Product[] products;
-    }
-
-    Shop[] shops;
-
-    mapping (address => User) private users;
-
-    mapping (address => Shop) private shop;
+    mapping (address => User) public users;
+    mapping (uint => Shop) public shops;
+    mapping (uint => Product) public products;
 
     address[] reg;
 
-    function pushNewUser (uint _Role, string memory _LastName, string memory _FirstName, string memory _MiddleName, string memory _Password, uint _Balance) public{
-        require(users[msg.sender].isExist == false, "Users already exist");
-        users[msg.sender] = User(
-            _Role,
-            _LastName,
-            _FirstName,
-            _MiddleName,
-            keccak256(abi.encodePacked(_Password)),
-            _Balance,
-            true 
+    Product[] prod;
+
+    constructor(){
+        shops[0] = Shop(0, "test1");
+        shops[1] = Shop(1, "test2");
+        shops[2] = Shop(2, "test3");
+        shops[3] = Shop(3, "test4");
+
+        prod.push(products[0] = Product(0, "test01", 1000, 0));
+        prod.push(products[0] = Product(1, "test02", 1500, 0));
+        prod.push(products[0] = Product(2, "test03", 100, 0));
+
+        prod.push(products[1] = Product(3, "test11", 500, 1));
+        prod.push(products[1] = Product(4, "test12", 1050, 1));
+        prod.push(products[1] = Product(5, "test13", 10000, 1));
+
+        prod.push(products[2] = Product(6, "test21", 1800, 2));
+        prod.push(products[2] = Product(7, "test22", 10500, 2));
+        prod.push(products[2] = Product(8, "test23", 150, 2));
+
+        prod.push(products[3] = Product(9, "test31", 1500, 3));
+        prod.push(products[3] = Product(10, "test32", 350, 3));
+        prod.push(products[3] = Product(11, "test33", 250, 3));
+
+        users[0x8d5168336d56Dd5ba35890a82fB30D031fe3A49f] = User(0, "testA", "testA", 1000 ,true);
+        users[0x4f1f3328f491304B2d7A3500cd092fd37a245468] = User(1, "testS", "testS", 1000 ,true);
+        users[0xcc3DDa53B653988b0B995710e5689872B0E7bbEd] = User(2, "testC", "testC", 1000 ,true);
+    }
+
+    //General functions
+
+    function pushNewUser(uint Role, string memory Login, string memory Password) public{
+        require(users[msg.sender].isExist == false, "User not exist");
+        users[msg.sender]=User(
+            Role,
+            Login,
+            keccak256(abi.encodePacked(Password)),
+            1000,
+            true
         );
+
         reg.push(msg.sender);
-    }
+    } 
 
-    function autUser(string memory _Password) public view returns (bool){
+    function autUser(string memory Password) public view returns (bool){
         require(users[msg.sender].isExist == true, "User not exist");
-        if (users[msg.sender].Password == keccak256(abi.encodePacked(_Password)))
-        return true;
-
-        return false;
+        if (users[msg.sender].Password == keccak256(abi.encodePacked(Password))){
+                return true;
+        }
+        else{
+            return false;
+        }
     }
 
-    function upBeforeSeller(address adr) public{
-        require(users[msg.sender].Role == 1, "You are admin");
-        require(users[adr].Role == 3, "You not customer");
+    function ViewBalance() public view returns(uint){
+        return users[msg.sender].Balance;
+    }
+
+    function getProduct() public view returns(Product[] memory){
+        return prod;
+    }
+
+    //Administator functions
+
+    function riseCustomeBeforeSeller(address adr) public{
+        require(users[msg.sender].Role == 0, "User is not admin");
+        require(users[adr].Role == 2, "User is not customer");
+        users[adr].Role = 1;
+    }
+
+    function lowerSelerBeforeCoustomer(address adr) public{
+        require(users[msg.sender].Role == 0, "User is not admin");
+        require(users[adr].Role == 1, "User is not customer");
         users[adr].Role = 2;
-    } 
-
-    function lowerToCustomer(address adr) public{
-        require(users[msg.sender].Role == 1, "You are admin");
-        require(users[adr].Role == 2, "You not seller");
-        users[adr].Role = 3;
-    } 
-
-    address[] addresse;
-    uint[] roles;
-
-    mapping (address => uint) private requestrole;
-
-    function requestAdministrator() public{
-        require(users[msg.sender].Role != 1, "You are not admin");
-        if (users[msg.sender].Role == 2){
-            requestrole[msg.sender] = 2;
-            addresse.push(msg.sender);
-            roles.push(2);
-        }
-        else if (users[msg.sender].Role == 3){
-            requestrole[msg.sender] = 3;
-            addresse.push(msg.sender);
-            roles.push(3);
-        }
     }
 
-    string[] nameproduct;
-
-    function addShop(uint indexShop) public{
-        indexShop;
-        shops.push();
+    function pushNewAdmin(string memory Login, string memory Password) public{
+        require(users[msg.sender].Role == 0, "User is not admin");
+        users[msg.sender]=User(
+            0,
+            Login,
+            keccak256(abi.encodePacked(Password)),
+            1000,
+            true
+        );
     }
 
-    function addProduct(uint indexShop) public {
-        if (indexShop == 0){
-        shops[indexShop].products.push(Product(1, 10));
-        shops[indexShop].products.push(Product(2, 11));
-        shops[indexShop].products.push(Product(3, 176));
-        }
-        if (indexShop == 1){
-        shops[indexShop].products.push(Product(4, 90));
-        shops[indexShop].products.push(Product(5, 152));
-        shops[indexShop].products.push(Product(6, 175));
-        }
+    address[] requestaddress;
+    uint[] requstrole;
 
-        if (indexShop == 2){
-        shops[indexShop].products.push(Product(7, 74));
-        shops[indexShop].products.push(Product(8, 150));
-        shops[indexShop].products.push(Product(9, 462));
-        }
-        if (indexShop == 3){
-        shops[indexShop].products.push(Product(1, 40));
-        shops[indexShop].products.push(Product(2, 450));
-        shops[indexShop].products.push(Product(3, 4413));
-        }
+    mapping (address => uint) public requestrole;
+
+    //Seller functions
+
+    function requestSellerToAdmin() public returns(bool){
+        require(users[msg.sender].Role == 1, "User is not seller");
+        requestrole[msg.sender] = 1;
+        requestaddress.push(msg.sender);
+        requstrole.push(2);
+
+        return true;
     }
 
-    //function buyProduct(uint indexShop, uint _idproduct, uint _Price, uint count) public{
-    //    require(users[msg.sender].Role != 3, "You not customer");
-    //    if (indexShop == 0){
-    //        require(msg.value >= Product[_idproduct].Price);
-    //    }
-    //    if (indexShop == 1){
-    //        
-    //    }
-    //
-    //    if (indexShop == 2){
-    //        
-    //    }
-    //    if (indexShop == 3){
-    //        
-    //    }
-    //} 
-}   
+    //Customer functions
+
+    function requestCustomerrToAdmin() public returns(bool){
+        require(users[msg.sender].Role == 2, "User is not customer");
+        requestrole[msg.sender] = 2;
+        requestaddress.push(msg.sender);
+        requstrole.push(1);
+
+        return true;
+    }
+
+    function buyProduct(uint IndexProduct) public returns(bool){
+        require(users[msg.sender].Role == 2, "User is not customer");
+        require(users[msg.sender].Balance >= prod[IndexProduct].PriceProduct);
+        users[msg.sender].Balance = users[msg.sender].Balance - prod[IndexProduct].PriceProduct;
+        return true;
+    }
+
+    function returnProduct(uint IndexProduct) public returns(bool){
+        require(users[msg.sender].Role == 2, "User is not customer");
+        users[msg.sender].Balance = users[msg.sender].Balance + prod[IndexProduct].PriceProduct;
+        return true;
+    }
+}
