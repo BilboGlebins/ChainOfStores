@@ -1,7 +1,7 @@
 buff_user_address = ''
 buff_user_data = ''
 
-contract_address = '0x395d85adCB89AF36AA7178ea71133e175bfA0129'
+contract_address = '0xf522Ffb04DBE718D9b77acB76b2Cef81847367c0'
 
 abi = [
 	{
