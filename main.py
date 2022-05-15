@@ -1,156 +1,227 @@
-
 from web3 import Web3
 
-import contract_info
+import service
+import web3.exceptions
 
 w3 = Web3
 
 w3 = Web3(Web3.HTTPProvider('http://127.0.0.1:7545'))
-print("Статус подключения:", w3.isConnected())
-print()
 
-contract = w3.eth.contract(address=contract_info.contract_address,
-                           abi=contract_info.abi)
+contract = w3.eth.contract(address=service.contract_address,
+                           abi=service.abi)
 
-index_shop = 0
-contract.functions.addShop(index_shop)
-contract.functions.addProduct(index_shop)
-print("Магазин добавлен. Индекс магазина в системе: ", index_shop)
-index_shop = 1
-contract.functions.addShop(index_shop)
-contract.functions.addProduct(index_shop)
-print("Магазин добавлен. Индекс магазина в системе: ", index_shop)
-index_shop = 2
-contract.functions.addShop(index_shop)
-contract.functions.addProduct(index_shop)
-print("Магазин добавлен. Индекс магазина в системе: ", index_shop)
-index_shop = 3
-contract.functions.addShop(index_shop)
-contract.functions.addProduct(index_shop)
-print("Магазин добавлен. Индекс магазина в системе: ", index_shop)
+print("Статус подключения: ", w3.isConnected())
 
-print()
-
-print("Список адресов в системе:")
+print("Список адресов в системе: ")
 for address in w3.eth._get_accounts():
     print(address)
 
-print()
+print("Пользоваели при старте системы:")
+print("Администратор: Адрес - 0x8d5168336d56Dd5ba35890a82fB30D031fe3A49f / Пароль - testA")
+print("Продавец: Адрес - 0x4f1f3328f491304B2d7A3500cd092fd37a245468 / Пароль - testS")
+print("Покупатель: Адрес - 0xcc3DDa53B653988b0B995710e5689872B0E7bbEd / Пароль - testC")
 
-print("Добавление пользователей")
-buff_ans = 1
-while buff_ans == 1:
 
+def auth():
+    print("Авторизация")
     address = input("Введите адрес: ")
-    print("1 - Администратор / 2 - Продавец / 3 - Покупатель")
-    role= int(input("Введите роль: "))
-    lastname=input("Введите фамилию: ")
-    firstname=input("Введите имя: ")
-    middlename=input("Введите отчество: ")
     password = input("Введите пароль: ")
-    balance=int(input("Введите баланс: "))
 
-    contract.functions.pushNewUser(role, lastname, firstname, middlename, password, balance).transact({'from': address})
+    if address != '' and password != '':
+        try:
+            auth_user = contract.functions.autUser(password).call({'from': address})
+            if auth_user:
+                print("Вы авторизированны")
+                service.buff_user_address = address
+                service.buff_user_data = contract.functions.users(
+                    service.buff_user_address).call()
+                if service.buff_user_data[0] == 0:
+                    admin_function()
+                if service.buff_user_data[0] == 1:
+                    seller_function()
+                if service.buff_user_data[0] == 2:
+                    customer_function()
+            else:
+                print("Вы не авторизированны")
+                return
+        except web3.exceptions.ContractLogicError as err:
+            print("Ошибка: ", err)
 
-    print("Хотите довавить еще одного пользователя?")
-    print("Да - 1 / Нет - 0")
-    buff_ans=int(input())
-    if buff_ans == 0:
+
+def reg():
+    while True:
+        print("Регистрация")
+        print("1 - Добавить нового пользователя")
+        print("0 - Выход")
+        buff_choice = int(input("Выберите функцию: "))
+        if buff_choice == 1:
+            address = input("Введите адрес: ")
+            role = input("Введите роль: ")
+            login = input("Введите логин: ")
+            password = input("Введите пароль: ")
+
+            if address != '' and role != '' and login != '' and password != '':
+                try:
+                    contract.functions.pushNewUser(role, login, password).call({'from': address})
+                except web3.exceptions.ContractLogicError as err:
+                    print("Ошибка: ", err)
+        elif buff_choice == 0:
+            break
+        else:
+            break
+
+
+def admin_function():
+    while True:
+        print("Функции администратора:")
+        print("1 - Повышение обычного покупателя до роли продавец")
+        print("2 - Понижение продавца до роли покупатель")
+        print("3 - Переключиться к роли покупатель")
+        print("4 - Ввод в систему новых администраторов")
+        print("0 - Выход")
+        buff_choice = int(input("Выберите функцию: "))
+        if buff_choice == 1:
+            print("Повышение обычного покупателя до роли продавец")
+            customer_address = input("Введите адрес пользователя: ")
+            try:
+                contract.functions.riseCustomeBeforeSeller(customer_address).call({'from': service.buff_user_address})
+            except web3.exceptions.ContractLogicError as err:
+                print("Ошибка: ", err)
+
+        elif buff_choice == 2:
+            print("Понижение продавца до роли покупатель")
+            seller_address = input("Введите адрес продавца: ")
+            try:
+                contract.functions.lowerSelerBeforeCoustomer(seller_address).call({'from': service.buff_user_address})
+            except web3.exceptions.ContractLogicError as err:
+                print("Ошибка: ", err)
+
+        elif buff_choice == 3:
+            print("Переключиться к роли покупатель")
+            customer_address = input("Ввыедите адресс покупателя: ")
+            customer_password = input("Ввыедите пароль покупателя: ")
+            try:
+                contract.functions.autUser(customer_password).call({'from': customer_address})
+            except web3.exceptions.ContractLogicError as err:
+                print("Ошибка: ", err)
+
+        elif buff_choice == 4:
+            print("Ввод в систему новых администраторов")
+            admin_login = input("Введите логин: ")
+            admin_password = input("Введите пароль: ")
+            try:
+                contract.functions.pushNewAdmin(admin_login, admin_password).call({'from': service.buff_user_address})
+            except web3.exceptions.ContractLogicError as err:
+                print("Ошибка: ", err)
+
+        elif buff_choice == 0:
+            break
+        else:
+            break
+
+
+def seller_function():
+    while True:
+        print("Функции продавца:")
+        print("1 - Переключение к роли покупатель")
+        print("2 - Отправка запроса на понижение до роли покупатель")
+        print("3 - Подтверждение / отклонение запроса покупателя на покупку, возврат товара, оформление брака")
+        print("0 - Выход")
+        buff_choice = int(input("Выберите функцию: "))
+        if buff_choice == 1:
+            print("Переключение к роли покупатель")
+            customer_address = input("Ввыедите адресс покупателя: ")
+            customer_password = input("Ввыедите пароль покупателя: ")
+            try:
+                auth_user = contract.functions.autUser(customer_password).call({'from': customer_address})
+                if auth_user:
+                    print("Вы авторизированны")
+                    customer_function()
+            except web3.exceptions.ContractLogicError as err:
+                print("Ошибка: ", err)
+
+        elif buff_choice == 2:
+            print("Отправка запроса на понижение до роли покупатель")
+            try:
+                contract.functions.requestSellerToAdmin().call({'from': service.buff_user_address})
+            except web3.exceptions.ContractLogicError as err:
+                print("Ошибка: ", err)
+
+        elif buff_choice == 3:
+            print("3 - Подтверждение / отклонение запроса покупателя на покупку, возврат товара, оформление брака")
+
+        elif buff_choice == 0:
+            break
+        else:
+            break
+
+
+def customer_function():
+    while True:
+        print("Функции покупателя:")
+        print("1 - Подать запрос на повышение до роли продавец.")
+        print("2 - Покупка товар в магазине")
+        print("3 - Возврат товар в магазин")
+        print("4 - Просмотр баланса")
+        print("5 - Просмотр товара")
+        print("0 - Выход")
+        buff_choice = int(input("Выберите функцию: "))
+        if buff_choice == 1:
+            print("Подать запрос на повышение до роли продавец.")
+            try:
+                contract.functions.requestCustomerrToAdmin().call({'from': service.buff_user_address})
+            except web3.exceptions.ContractLogicError as err:
+                print("Ошибка: ", err)
+
+        elif buff_choice == 2:
+            print("Покупка товар в магазине")
+            index_product = int(input("Введите индекс товара: "))
+            try:
+                contract.functions.buyProduct(index_product).call({'from': service.buff_user_address})
+            except web3.exceptions.ContractLogicError as err:
+                print("Ошибка: ", err)
+
+        elif buff_choice == 3:
+            print("Возврат товар в магазин")
+            index_product = int(input("Введите индекс товара: "))
+            try:
+                contract.functions.returnProduct(index_product).call({'from': service.buff_user_address})
+            except web3.exceptions.ContractLogicError as err:
+                print("Ошибка: ", err)
+
+        elif buff_choice == 4:
+            print("Просмотр баланса")
+            try:
+                contract.functions.ViewBalance().call({'from': service.buff_user_address})
+            except web3.exceptions.ContractLogicError as err:
+                print("Ошибка: ", err)
+
+        elif buff_choice == 5:
+            print("Просмотр товара")
+            try:
+                contract.functions.getProduct().call({'from': service.buff_user_address})
+            except web3.exceptions.ContractLogicError as err:
+                print("Ошибка: ", err)
+
+        elif buff_choice == 0:
+            break
+        else:
+            break
+
+
+while True:
+    print("Стартовое меню")
+    print("1 - Авторизация")
+    print("2 - Регистрация")
+    print("0 - Выход")
+
+    menu_choice = int(input("Выберите действие: "))
+
+    if menu_choice == 1:
+        auth()
+    elif menu_choice == 2:
+        reg()
+    elif menu_choice == 0:
         break
-
-print()
-
-print("Доступные функции")
-buff_choice = 1
-while buff_choice == 1:
-
-    print("1 - Администратор / 2 - Продавец / 3 - Покупатель")
-    choice_role=int(input("Введите роль: "))
-
-    if choice_role == 1:
-
-        address_admin = input("Введите адрес администратора: ")
-        address_password = input("Введите пароль администратора: ")
-        print("Статус авторизации: ", contract.functions.autUser(address_password).call({'from': address_admin}))
-        print()
-
-        buff_function = 1
-        while buff_function == 1:
-
-            print("Список функций администратора:")
-            print("1. Повышение покупателя до роли продавеца")
-            print("2. Понижение продавца до роли покупателя")
-            print("3. Добавление нового администратора")
-            choice_function=int(input("Введите номер функции: "))
-            print()
-
-            if choice_function == 1:
-                print("Повышение покупателя до роли продавца")
-                buff_address_customer=input("Ввидите адрес покупателя: ")
-                contract.functions.upBeforeSeller(buff_address_customer).call({'from': address_admin})
-                print("Роль изменена!")
-
-                print()
-
-            if choice_function == 2:
-                print("Понижение продавца до роли покупателя")
-                buff_address_saller=input("Ввидите адрес продавца: ")
-                contract.functions.lowerToCustomer(buff_address_saller).call({'from': address_admin})
-                print("Роль изменена!")
-
-                print()
-
-            if choice_function == 3:
-                print("Добавление нового администратора")
-                address = input("Введите адрес нового администратора: ")
-                role = 1
-                lastname = input("Введите фамилию: ")
-                firstname = input("Введите имя: ")
-                middlename = input("Введите отчество: ")
-                password = input("Введите пароль: ")
-                balance = int(input("Введите баланс: "))
-                contract.functions.pushNewUser(role, lastname, firstname, middlename, password, balance).transact({'from': address})
-                print("Пользователь добавлен")
-
-                print()
-
-            print("Хотите выбрать другую функцию?")
-            print("Да - 1 / Нет - 0")
-            buff_function = int(input())
-
-            print()
-
-            if buff_function == 0:
-                break
-
-    if choice_role == 2:
-
-        address_saller = input("Введите адрес продавца: ")
-        address_password = input("Введите пароль продавца: ")
-        print("Статус авторизации: ", contract.functions.autUser(address_password).call({'from': address_saller}))
-        print()
-
-        #buff_function = 1
-        #while buff_function == 1:
-        #    print("Список функций продавца:")
-        #    print("1. Может отправить запрос на понижение до роли покупатель")
-
-    if choice_role == 3:
-
-        address_customer = input("Введите адрес покупателя: ")
-        address_password = input("Введите пароль покупателя: ")
-        print("Статус авторизации: ", contract.functions.autUser(address_password).call({'from': address_customer}))
-        print()
-
-        #buff_function = 1
-        #while buff_function == 1:
-        #    print("Список функций продавца:")
-        #    print("1. Может отправить запрос на понижение до роли покупатель")
-
-
-
-
-
-
-
-
+    else:
+        break
