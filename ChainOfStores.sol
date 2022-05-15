@@ -55,9 +55,9 @@ contract ChainOfStores{
         prod.push(products[3] = Product(10, "test32", 350, 3));
         prod.push(products[3] = Product(11, "test33", 250, 3));
 
-        users[0x8d5168336d56Dd5ba35890a82fB30D031fe3A49f] = User(0, "testA", "testA", 1000 ,true);
-        users[0x4f1f3328f491304B2d7A3500cd092fd37a245468] = User(1, "testS", "testS", 1000 ,true);
-        users[0xcc3DDa53B653988b0B995710e5689872B0E7bbEd] = User(2, "testC", "testC", 1000 ,true);
+        users[0x8d5168336d56Dd5ba35890a82fB30D031fe3A49f] = User(0, "testA", keccak256(abi.encodePacked("testA")), 1000 ,true);
+        users[0x4f1f3328f491304B2d7A3500cd092fd37a245468] = User(1, "testS", keccak256(abi.encodePacked("testS")), 1000 ,true);
+        users[0xcc3DDa53B653988b0B995710e5689872B0E7bbEd] = User(2, "testC", keccak256(abi.encodePacked("testC")), 1000 ,true);;
     }
 
     //General functions
