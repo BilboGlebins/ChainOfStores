@@ -1,13 +1,12 @@
-// SPDX-License-Identifier: GPL-3.0
-
 pragma solidity >=0.7.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 
-contract ChainOfStores{
+contract RemakeChainOfStores{
 
     struct Shop{
         uint IndexShop; // Index starts from 0
         string NameShop;
+        address AddressSeller;
     }
 
     struct Product{
@@ -21,6 +20,10 @@ contract ChainOfStores{
         uint Role; // 0 - Administrator / 1 - Seller / 2 - Customer
         string Login;
         bytes32 Password;
+        string LastName;
+        string FirstName;
+        string MiddleName;
+        string City;
         uint Balance;
         bool isExist;
     }
@@ -32,12 +35,18 @@ contract ChainOfStores{
     address[] reg;
 
     Product[] prod;
+    Shop[] shopss;
+
+    address[] requestaddress;
+    uint[] requstrole;
+
+    mapping (address => uint) public requestroles;
 
     constructor(){
-        shops[0] = Shop(0, "test1");
-        shops[1] = Shop(1, "test2");
-        shops[2] = Shop(2, "test3");
-        shops[3] = Shop(3, "test4");
+        shopss.push(shops[0] = Shop(0, "test1", 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2));
+        shopss.push(shops[1] = Shop(1, "test2", 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2));
+        shopss.push(shops[2] = Shop(2, "test3", 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2));
+        shopss.push(shops[3] = Shop(3, "test4", 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2));
 
         prod.push(products[0] = Product(0, "test01", 1000, 0));
         prod.push(products[0] = Product(1, "test02", 1500, 0));
@@ -55,19 +64,23 @@ contract ChainOfStores{
         prod.push(products[3] = Product(10, "test32", 350, 3));
         prod.push(products[3] = Product(11, "test33", 250, 3));
 
-        users[0x8d5168336d56Dd5ba35890a82fB30D031fe3A49f] = User(0, "testA", keccak256(abi.encodePacked("testA")), 1000 ,true);
-        users[0x4f1f3328f491304B2d7A3500cd092fd37a245468] = User(1, "testS", keccak256(abi.encodePacked("testS")), 1000 ,true);
-        users[0xcc3DDa53B653988b0B995710e5689872B0E7bbEd] = User(2, "testC", keccak256(abi.encodePacked("testC")), 1000 ,true);;
+        users[0x5B38Da6a701c568545dCfcB03FcB875f56beddC4] = User(0, "testA", keccak256(abi.encodePacked("testA")), "testA", "testA", "testA", "testA", 1000, true);
+        users[0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2] = User(1, "testS", keccak256(abi.encodePacked("testS")), "testS", "testS", "testS", "testS", 1000, true);
+        users[0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db] = User(2, "testC", keccak256(abi.encodePacked("testC")), "testC", "testC", "testC","testC", 1000, true);
     }
 
     //General functions
 
-    function pushNewUser(uint Role, string memory Login, string memory Password) public{
+    function pushNewUser(uint Role, string memory Login, string memory Password, string memory LastName, string memory FirstName, string memory MiddleName, string memory City) public{
         require(users[msg.sender].isExist == false, "User not exist");
         users[msg.sender]=User(
             Role,
             Login,
             keccak256(abi.encodePacked(Password)),
+            LastName,
+            FirstName,
+            MiddleName,
+            City,
             1000,
             true
         );
@@ -83,6 +96,14 @@ contract ChainOfStores{
         else{
             return false;
         }
+    }
+
+    function getLogin() public view returns(string memory){
+        return users[msg.sender].Login;
+    }
+
+    function getFullName() public view returns(string memory, string memory, string memory){
+        return (users[msg.sender].LastName, users[msg.sender].FirstName, users[msg.sender].MiddleName);
     }
 
     function ViewBalance() public view returns(uint){
@@ -107,38 +128,63 @@ contract ChainOfStores{
         users[adr].Role = 2;
     }
 
-    function pushNewAdmin(string memory Login, string memory Password) public{
+    function pushNewAdmin(string memory Login, string memory Password, string memory LastName, string memory FirstName, string memory MiddleName, string memory City) public{
         require(users[msg.sender].Role == 0, "User is not admin");
         users[msg.sender]=User(
             0,
             Login,
             keccak256(abi.encodePacked(Password)),
+            LastName,
+            FirstName,
+            MiddleName,
+            City,
             1000,
             true
         );
     }
 
-    address[] requestaddress;
-    uint[] requstrole;
+    function getRequst() public view returns(address[] memory, uint[] memory){
+        require(users[msg.sender].Role == 0, "User is not admin");
+        return (requestaddress, requstrole);
+    }
 
-    mapping (address => uint) public requestrole;
+    //function getSeller(uint IndexShop) public view returns(){
+    //    if(shops[IndexShop].AddressSeller == msg.sender){
+        
+    //    }
+    //}
+
+    //function getAdmin() public view returns(address[] memory){
+    //    require(users[msg.sender].Role == 0, "User is not admin");
+
+    //}
 
     //Seller functions
 
     function requestSellerToAdmin() public returns(bool){
         require(users[msg.sender].Role == 1, "User is not seller");
-        requestrole[msg.sender] = 1;
+        requestroles[msg.sender] = 1;
         requestaddress.push(msg.sender);
         requstrole.push(2);
 
         return true;
     }
 
+    function getCity() public view returns(string memory){
+        return users[msg.sender].City;
+    }
+
+    //function getShop() public view returns(string memory){
+    //    if(shops[].AddressSeller == msg.sender){
+            
+    //    }
+    //}
+
     //Customer functions
 
     function requestCustomerrToAdmin() public returns(bool){
         require(users[msg.sender].Role == 2, "User is not customer");
-        requestrole[msg.sender] = 2;
+        requestroles[msg.sender] = 2;
         requestaddress.push(msg.sender);
         requstrole.push(1);
 
