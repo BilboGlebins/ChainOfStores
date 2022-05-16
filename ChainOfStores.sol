@@ -6,6 +6,7 @@ contract RemakeChainOfStores{
     struct Shop{
         uint IndexShop; // Index starts from 0
         string NameShop;
+        string City;
         address AddressSeller;
     }
 
@@ -23,7 +24,6 @@ contract RemakeChainOfStores{
         string LastName;
         string FirstName;
         string MiddleName;
-        string City;
         uint Balance;
         bool isExist;
     }
@@ -43,10 +43,10 @@ contract RemakeChainOfStores{
     mapping (address => uint) public requestroles;
 
     constructor(){
-        shopss.push(shops[0] = Shop(0, "test1", 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2));
-        shopss.push(shops[1] = Shop(1, "test2", 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2));
-        shopss.push(shops[2] = Shop(2, "test3", 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2));
-        shopss.push(shops[3] = Shop(3, "test4", 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2));
+        shopss.push(shops[0] = Shop(0, "test1", "test1", 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2));
+        shopss.push(shops[1] = Shop(1, "test2", "test2", 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2));
+        shopss.push(shops[2] = Shop(2, "test3", "test3", 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2));
+        shopss.push(shops[3] = Shop(3, "test4", "test4", 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2));
 
         prod.push(products[0] = Product(0, "test01", 1000, 0));
         prod.push(products[0] = Product(1, "test02", 1500, 0));
@@ -64,14 +64,18 @@ contract RemakeChainOfStores{
         prod.push(products[3] = Product(10, "test32", 350, 3));
         prod.push(products[3] = Product(11, "test33", 250, 3));
 
-        users[0x5B38Da6a701c568545dCfcB03FcB875f56beddC4] = User(0, "testA", keccak256(abi.encodePacked("testA")), "testA", "testA", "testA", "testA", 1000, true);
-        users[0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2] = User(1, "testS", keccak256(abi.encodePacked("testS")), "testS", "testS", "testS", "testS", 1000, true);
-        users[0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db] = User(2, "testC", keccak256(abi.encodePacked("testC")), "testC", "testC", "testC","testC", 1000, true);
+        users[0x5B38Da6a701c568545dCfcB03FcB875f56beddC4] = User(0, "testA", keccak256(abi.encodePacked("testA")), "testA", "testA", "testA", 1000, true);
+        users[0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2] = User(1, "testS", keccak256(abi.encodePacked("testS")), "testS", "testS", "testS", 1000, true);
+        users[0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db] = User(2, "testC", keccak256(abi.encodePacked("testC")), "testC", "testC", "testC", 1000, true);
+
+        reg.push(0x5B38Da6a701c568545dCfcB03FcB875f56beddC4);
+        reg.push(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2);
+        reg.push(0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db);
     }
 
     //General functions
 
-    function pushNewUser(uint Role, string memory Login, string memory Password, string memory LastName, string memory FirstName, string memory MiddleName, string memory City) public{
+    function pushNewUser(uint Role, string memory Login, string memory Password, string memory LastName, string memory FirstName, string memory MiddleName) public{
         require(users[msg.sender].isExist == false, "User not exist");
         users[msg.sender]=User(
             Role,
@@ -80,11 +84,9 @@ contract RemakeChainOfStores{
             LastName,
             FirstName,
             MiddleName,
-            City,
             1000,
             true
         );
-
         reg.push(msg.sender);
     } 
 
@@ -128,7 +130,7 @@ contract RemakeChainOfStores{
         users[adr].Role = 2;
     }
 
-    function pushNewAdmin(string memory Login, string memory Password, string memory LastName, string memory FirstName, string memory MiddleName, string memory City) public{
+    function pushNewAdmin(string memory Login, string memory Password, string memory LastName, string memory FirstName, string memory MiddleName) public{
         require(users[msg.sender].Role == 0, "User is not admin");
         users[msg.sender]=User(
             0,
@@ -137,7 +139,6 @@ contract RemakeChainOfStores{
             LastName,
             FirstName,
             MiddleName,
-            City,
             1000,
             true
         );
@@ -148,16 +149,18 @@ contract RemakeChainOfStores{
         return (requestaddress, requstrole);
     }
 
-    //function getSeller(uint IndexShop) public view returns(){
-    //    if(shops[IndexShop].AddressSeller == msg.sender){
-        
-    //    }
-    //}
+    function getSeller(uint IndexShop) public view returns(address){
+        return shops[IndexShop].AddressSeller;
+    }
 
-    //function getAdmin() public view returns(address[] memory){
-    //    require(users[msg.sender].Role == 0, "User is not admin");
-
-    //}
+    function getAdmin() public view returns(address){
+        require(users[msg.sender].Role == 0, "User is not admin");
+        for(uint i; i < reg.length; i++){
+            if (users[reg[i]].Role == 0){
+                return reg[i];
+            }
+        }
+    }
 
     //Seller functions
 
@@ -170,13 +173,15 @@ contract RemakeChainOfStores{
         return true;
     }
 
-    function getCity() public view returns(string memory){
-        return users[msg.sender].City;
-    }
+    //function getCity() public view returns(string memory){
+        
+    //}
 
     //function getShop() public view returns(string memory){
-    //    if(shops[].AddressSeller == msg.sender){
-            
+    //    require(users[msg.sender].Role == 1, "User is not seller");
+    //        for(uint i; i < shopss.length; i++){
+                
+    //        }
     //    }
     //}
 
